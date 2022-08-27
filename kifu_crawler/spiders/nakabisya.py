@@ -1,4 +1,5 @@
 import scrapy
+import re
 
 
 class NakabisyaSpider(scrapy.Spider):
@@ -12,7 +13,14 @@ class NakabisyaSpider(scrapy.Spider):
         file_name = response.css('h2.article__title::text').get().replace('/', ' ')
         kif_contents = response.css('.article__content').re_first(r'</iframe>.*<a name="more">')
         if kif_contents:
-            kif_contents = kif_contents.replace('</iframe>', '').replace('<a name="more">', '')
+            kif_contents = kif_contents.replace('</iframe>', '').replace('<a name="more">', '').replace('<br>', '\n')
+            # remove all html tags
+            html_tags = re.compile(r'<.*?>')
+            kif_contents = re.sub(html_tags, '', kif_contents)
+            # remove duplicate newlines
+            dup_newlines = re.compile(r'\n+')
+            kif_contents = re.sub(dup_newlines, '\n', kif_contents.strip())
+
         yield {
                 'file_url': file_url,
                 'file_name': file_name,
