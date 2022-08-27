@@ -9,10 +9,14 @@ class NakabisyaSpider(scrapy.Spider):
     def parse(self, response):
         kif_app_url = response.css('iframe::attr(src)').get()
         file_url = kif_app_url.replace('index.html', 'form.csa')
-        file_name = response.css('h2.article__title::text').get().replace('/', ' ') + '.csa'
+        file_name = response.css('h2.article__title::text').get().replace('/', ' ')
+        kif_contents = response.css('.article__content').re_first(r'</iframe>.*<a name="more">')
+        if kif_contents:
+            kif_contents = kif_contents.replace('</iframe>', '').replace('<a name="more">', '')
         yield {
                 'file_url': file_url,
-                'file_name': file_name
+                'file_name': file_name,
+                'kif_contents': kif_contents
                 }
         next_page = response.css('a.next::attr(href)').get()
         if next_page is not None:
